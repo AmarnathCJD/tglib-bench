@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -56,19 +57,20 @@ func main() {
 	}
 
 	timestamps := make([]float64, 0, 4)
+	buf := bytes.NewBuffer(make([]byte, 0, doc.Size))
 
 	timestamps = append(timestamps, now())
-	path, err := message.Download(&telegram.DownloadOptions{
-		FileName: "downloaded.bin",
-	})
-	timestamps = append(timestamps, now())
-	if err != nil {
+	if _, err := message.Download(&telegram.DownloadOptions{Buffer: buf}); err != nil {
 		fmt.Fprintln(os.Stderr, "Download:", err)
 		os.Exit(1)
 	}
+	timestamps = append(timestamps, now())
 
 	timestamps = append(timestamps, now())
-	if _, err := client.SendMedia(cfg.chatID, path); err != nil {
+	_, err = client.SendMedia(cfg.chatID, buf.Bytes(), &telegram.MediaOptions{
+		Upload: &telegram.UploadOptions{FileName: "gogram.bin"},
+	})
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "SendMedia:", err)
 		os.Exit(1)
 	}
