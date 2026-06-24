@@ -67,11 +67,8 @@ func main() {
 	timestamps = append(timestamps, now())
 
 	timestamps = append(timestamps, now())
-	_, err = client.SendMedia(cfg.chatID, buf.Bytes(), &telegram.MediaOptions{
-		Upload: &telegram.UploadOptions{FileName: "gogram.bin"},
-	})
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "SendMedia:", err)
+	if _, err := client.UploadFile(buf.Bytes(), &telegram.UploadOptions{FileName: "gogram.bin"}); err != nil {
+		fmt.Fprintln(os.Stderr, "UploadFile:", err)
 		os.Exit(1)
 	}
 	timestamps = append(timestamps, now())
@@ -97,7 +94,6 @@ type env struct {
 	apiHash     string
 	authString  string
 	messageLink string
-	chatID      int64
 }
 
 func loadEnv() (*env, error) {
@@ -121,20 +117,11 @@ func loadEnv() (*env, error) {
 	if messageLink == "" {
 		return nil, errors.New("MESSAGE_LINK not set")
 	}
-	chatIDStr := os.Getenv("CHAT_ID")
-	if chatIDStr == "" {
-		return nil, errors.New("CHAT_ID not set")
-	}
-	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid CHAT_ID: %w", err)
-	}
 	return &env{
 		apiID:       int32(apiID64),
 		apiHash:     apiHash,
 		authString:  authString,
 		messageLink: messageLink,
-		chatID:      chatID,
 	}, nil
 }
 
