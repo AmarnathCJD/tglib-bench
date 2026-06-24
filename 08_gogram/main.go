@@ -50,17 +50,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "GetMessageByID:", err)
 		os.Exit(1)
 	}
-	doc := message.Document()
-	if doc == nil {
-		fmt.Fprintln(os.Stderr, "Message has no document.")
-		os.Exit(1)
-	}
 
 	timestamps := make([]float64, 0, 4)
-	buf := bytes.NewBuffer(make([]byte, 0, doc.Size))
+	var buf bytes.Buffer
 
 	timestamps = append(timestamps, now())
-	if _, err := message.Download(&telegram.DownloadOptions{Buffer: buf}); err != nil {
+	if _, err := message.Download(&telegram.DownloadOptions{Buffer: &buf}); err != nil {
 		fmt.Fprintln(os.Stderr, "Download:", err)
 		os.Exit(1)
 	}
@@ -94,7 +89,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	result := [3]any{doc.Size, timestamps, strings.TrimPrefix(telegram.Version, "v")}
+	result := [3]any{buf.Len(), timestamps, strings.TrimPrefix(telegram.Version, "v")}
 	out, err := json.Marshal(result)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Marshal:", err)
